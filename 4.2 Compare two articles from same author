@@ -1,0 +1,238 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy import spatial
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+
+data = pd.read_csv("C:\\Users\\masha.shmidov\\datasets\\NIPS_1987-2015.csv", index_col ="word")
+
+
+# retrieving row by loc method
+first = data["1991_128"].head(1000)
+#second = data["1987_2"].head(300)
+third = data["1992_77"].head(1000)
+#fourth=data["1987_4"].head(300)
+
+#print(first, "\n\n\n", second)
+
+#grouping all the articles to docs
+#docs = [pd.Series(first), pd.Series(second), pd.Series(third), pd.Series(fourth)]
+docs = [pd.Series(first), pd.Series(third)]
+rep_docs = [" ".join(i.repeat(i).index.values) for i in docs]
+ 
+#instantiate CountVectorizer()
+cv=CountVectorizer()
+ 
+# this steps generates word counts for the words in rep_docs
+word_count_vector=cv.fit_transform(rep_docs)
+
+#how much docs in rows and columns
+word_count_vector.shape
+ 
+#compute Idf
+tfidf_transformer=TfidfTransformer(smooth_idf=True,use_idf=True)
+tfidf_transformer.fit(word_count_vector)
+ 
+# print idf values
+df_idf = pd.DataFrame(tfidf_transformer.idf_, index=cv.get_feature_names(),columns=["idf_weights"])
+ 
+print("tf:",df_idf )
+# sort ascending
+df_idf.sort_values(by=['idf_weights'])
+
+ 
+feature_names = cv.get_feature_names()
+
+
+#compute the tf-idf scores for any document or set of documents
+#count matrix
+count_vector=cv.transform(rep_docs) 
+# tf-idf scores
+tf_idf_vector=tfidf_transformer.transform(count_vector)
+#print(tf_idf_vector) 
+    
+#settings for count vectorizer
+tfidf_vectorizer=TfidfVectorizer(use_idf=True)
+tfidf_vectorizer_vectors=tfidf_vectorizer.fit_transform(rep_docs)
+ 
+#get the tf-idf scores of a set of documents.
+fitted_vectorizer=tfidf_vectorizer.fit(rep_docs)
+tfidf_vectorizer_vectors=fitted_vectorizer.transform(rep_docs) 
+
+print("TF IDF values ")
+print(tfidf_vectorizer_vectors)
+print("\n")
+print(tfidf_vectorizer.vocabulary_)
+print("\n")
+
+#correlation matrix between the documents 
+vecs = tfidf_vectorizer.fit_transform(rep_docs)
+corr_matrix = ((vecs * vecs.T).A)
+print(corr_matrix)
+print("\n")
+
+#defining each row as document
+row1=corr_matrix[0]
+row2=corr_matrix[1]
+#row3=corr_matrix[2]
+#row4=corr_matrix[3]
+
+#calculate distance beetween documents with cosine 
+result1=1-spatial.distance.cosine(row1,row2)
+#result2=1-spatial.distance.cosine(row1,row3)
+#result3=1-spatial.distance.cosine(row1,row4)
+#result4=1-spatial.distance.cosine(row2,row3)
+#result5=1-spatial.distance.cosine(row2,row4)
+#result6=1-spatial.distance.cosine(row3,row4)
+
+#dim = len(rep_docs)
+#similarity = corr_matrix[dim:, :dim].mean()
+
+#similarity to each one of the document
+print(" mean:" ,corr_matrix.mean(axis=0))
+print("\n")
+#similarity between all the documents
+print(corr_matrix.mean())
+print("\n")
+
+#differnces between each 2 documents
+#print("similarity between 1987_1 and 1987_2",result1)
+print("similarity between 1987_1 and 1987_3",result1)
+#print("similarity between 1987_1 and 1987_4",result3)
+#print("similarity between 1987_2 and 1987_3",result4)
+#print("similarity between 1987_2 and 1987_4",result5)
+#print("similarity between 1987_3 and 1987_4",result6)
+
+tf:                 idf_weights
+abstract           1.000000
+according          1.405465
+achieve            1.405465
+achieved           1.405465
+actions            1.405465
+activation         1.405465
+address            1.405465
+allows             1.405465
+almost             1.405465
+also               1.000000
+although           1.405465
+always             1.405465
+appear             1.000000
+applications       1.000000
+applied            1.405465
+approximation      1.000000
+approximations     1.000000
+arbitrary          1.000000
+artificial         1.405465
+assume             1.405465
+assumed            1.405465
+attention          1.405465
+available          1.405465
+basis              1.405465
+becomes            1.405465
+better             1.405465
+bounds             1.405465
+called             1.000000
+cambridge          1.405465
+case               1.000000
+...                     ...
+theory             1.000000
+thus               1.000000
+tion               1.405465
+topic              1.405465
+topics             1.405465
+transactions       1.405465
+transfer           1.405465
+typically          1.405465
+uniform            1.405465
+unique             1.000000
+university         1.000000
+unknown            1.405465
+use                1.000000
+used               1.000000
+uses               1.405465
+using              1.000000
+value              1.405465
+valued             1.000000
+values             1.405465
+variable           1.000000
+variables          1.405465
+vector             1.405465
+vectors            1.405465
+version            1.405465
+view               1.405465
+well               1.000000
+whether            1.405465
+work               1.000000
+works              1.405465
+york               1.405465
+
+[328 rows x 1 columns]
+TF IDF values 
+  (0, 326)	0.01728582214678219
+  (0, 325)	0.036897014476687834
+  (0, 324)	0.03457164429356438
+  (0, 323)	0.036897014476687834
+  (0, 322)	0.01728582214678219
+  (0, 317)	0.012299004825562612
+  (0, 316)	0.03457164429356438
+  (0, 315)	0.012299004825562612
+  (0, 314)	0.01728582214678219
+  (0, 313)	0.012299004825562612
+  (0, 312)	0.01728582214678219
+  (0, 311)	0.04919601930225045
+  (0, 310)	0.012299004825562612
+  (0, 309)	0.01728582214678219
+  (0, 308)	0.04919601930225045
+  (0, 307)	0.012299004825562612
+  (0, 306)	0.05185746644034657
+  (0, 301)	0.01728582214678219
+  (0, 299)	0.07379402895337567
+  (0, 298)	0.07379402895337567
+  (0, 297)	0.1106910434300635
+  (0, 296)	0.024598009651125224
+  (0, 295)	0.01728582214678219
+  (0, 293)	0.024598009651125224
+  (0, 290)	0.024598009651125224
+  :	:
+  (1, 42)	0.020748693675234957
+  (1, 41)	0.041497387350469914
+  (1, 40)	0.020748693675234957
+  (1, 39)	0.020748693675234957
+  (1, 33)	0.020748693675234957
+  (1, 29)	0.07381433219343266
+  (1, 27)	0.02952573287737306
+  (1, 24)	0.020748693675234957
+  (1, 22)	0.041497387350469914
+  (1, 21)	0.020748693675234957
+  (1, 20)	0.020748693675234957
+  (1, 19)	0.041497387350469914
+  (1, 17)	0.08857719863211919
+  (1, 16)	0.01476286643868653
+  (1, 15)	0.01476286643868653
+  (1, 13)	0.01476286643868653
+  (1, 12)	0.01476286643868653
+  (1, 11)	0.020748693675234957
+  (1, 9)	0.02952573287737306
+  (1, 8)	0.041497387350469914
+  (1, 7)	0.041497387350469914
+  (1, 6)	0.020748693675234957
+  (1, 5)	0.041497387350469914
+  (1, 2)	0.020748693675234957
+  (1, 0)	0.01476286643868653
+
+
+{'model': 176, 'learning': 148, 'set': 259, 'function': 115, 'using': 313, 'problem': 217, 'used': 311, 'given': 124, 'also': 9, 'results': 246, 'distribution': 85, 'network': 184, 'neural': 186, 'first': 108, 'information': 136, 'use': 310, 'error': 95, 'method': 173, 'linear': 156, 'different': 78, 'case': 29, 'probability': 216, 'methods': 174, 'space': 275, 'networks': 185, 'value': 314, 'large': 145, 'section': 252, 'let': 153, 'order': 198, 'functions': 117, 'following': 110, 'example': 99, 'see': 253, 'since': 268, 'work': 325, 'values': 316, 'point': 207, 'shown': 262, 'well': 323, 'class': 37, 'theorem': 297, 'thus': 299, 'size': 270, 'step': 283, 'paper': 200, 'note': 190, 'sample': 249, 'single': 269, 'parameter': 202, 'consider': 54, 'problems': 218, 'local': 158, 'machine': 160, 'form': 112, 'second': 251, 'small': 271, 'shows': 263, 'systems': 293, 'approximation': 15, 'defined': 65, 'general': 119, 'dimensional': 80, 'result': 245, 'possible': 211, 'examples': 100, 'proposed': 223, 'simple': 266, 'hidden': 128, 'processing': 219, 'estimation': 96, 'regression': 234, 'layer': 146, 'fixed': 109, 'terms': 296, 'obtained': 196, 'distributions': 86, 'level': 154, 'theory': 298, 'term': 295, 'known': 144, 'variable': 317, 'research': 243, 'university': 308, 'real': 229, 'constant': 56, 'better': 25, 'representation': 239, 'complexity': 44, 'setting': 260, 'statistical': 282, 'positive': 210, 'right': 247, 'bounds': 26, 'computer': 47, 'natural': 179, 'map': 165, 'norm': 189, 'multi': 177, 'multiple': 178, 'proof': 221, 'denote': 68, 'previous': 215, 'measure': 170, 'applied': 14, 'decision': 62, 'journal': 143, 'like': 155, 'properties': 222, 'component': 45, 'related': 235, 'applications': 13, 'generated': 123, 'cases': 30, 'classes': 38, 'make': 163, 'dimension': 79, 'introduction': 141, 'continuous': 58, 'conditions': 50, 'basis': 23, 'press': 214, 'part': 203, 'hence': 127, 'abstract': 0, 'hand': 126, 'according': 1, 'chosen': 36, 'condition': 49, 'difference': 77, 'observations': 193, 'less': 152, 'references': 233, 'although': 10, 'domain': 87, 'called': 27, 'definition': 66, 'main': 162, 'complex': 43, 'study': 287, 'rather': 227, 'relative': 237, 'uses': 312, 'effect': 91, 'nonlinear': 188, 'gives': 125, 'metric': 175, 'required': 241, 'representations': 240, 'subset': 288, 'series': 258, 'still': 284, 'topic': 301, 'actions': 4, 'robust': 248, 'report': 238, 'potential': 212, 'uniform': 306, 'partition': 206, 'dependent': 73, 'free': 113, 'artificial': 18, 'ing': 137, 'view': 322, 'depends': 74, 'whether': 324, 'net': 183, 'choose': 34, 'center': 31, 'unknown': 309, 'arbitrary': 17, 'department': 71, 'makes': 164, 'certain': 32, 'connections': 53, 'dimensions': 81, 'measures': 172, 'ratio': 228, 'connected': 51, 'strong': 285, 'holds': 130, 'interesting': 139, 'furthermore': 118, 'degree': 67, 'cambridge': 28, 'smooth': 272, 'achieved': 3, 'interest': 138, 'polynomial': 209, 'decomposition': 63, 'supported': 290, 'necessary': 180, 'operator': 197, 'prove': 224, 'similarly': 265, 'overall': 199, 'works': 326, 'determine': 76, 'enough': 94, 'side': 264, 'extended': 104, 'measured': 171, 'literature': 157, 'question': 225, 'studied': 286, 'spaces': 276, 'direct': 82, 'depend': 72, 'improvement': 132, 'generally': 122, 'needed': 182, 'con': 48, 'springer': 278, 'unique': 307, 'appear': 12, 'approximations': 16, 'valued': 315, 'connection': 52, 'hold': 129, 'suggests': 289, 'choosing': 35, 'exist': 101, 'number': 191, 'matrix': 168, 'state': 281, 'vector': 319, 'show': 261, 'new': 187, 'may': 169, 'variables': 318, 'points': 208, 'system': 292, 'standard': 280, 'assume': 19, 'sequence': 257, 'even': 97, 'particular': 205, 'independent': 134, 'vectors': 320, 'define': 64, 'follows': 111, 'control': 59, 'compute': 46, 'obtain': 195, 'rank': 226, 'least': 149, 'lemma': 150, 'fact': 105, 'every': 98, 'need': 181, 'generalization': 120, 'field': 106, 'respectively': 244, 'finite': 107, 'specific': 277, 'full': 114, 'available': 22, 'change': 33, 'allows': 7, 'product': 220, 'either': 93, 'requires': 242, 'take': 294, 'length': 151, 'tion': 300, 'version': 321, 'direction': 83, 'long': 159, 'considered': 55, 'power': 213, 'solve': 273, 'solving': 274, 'exponential': 103, 'close': 39, 'denotes': 70, 'made': 161, 'contains': 57, 'always': 11, 'typically': 305, 'simply': 267, 'seen': 254, 'matching': 167, 'details': 75, 'parallel': 201, 'becomes': 24, 'achieve': 2, 'exists': 102, 'combination': 41, 'drawn': 89, 'generalized': 121, 'easily': 90, 'complete': 42, 'recently': 230, 'coefficients': 40, 'suppose': 291, 'curve': 60, 'stage': 279, 'activation': 5, 'include': 133, 'implies': 131, 'functional': 116, 'assumed': 20, 'maps': 166, 'curves': 61, 'sense': 256, 'infinite': 135, 'satisfies': 250, 'denoted': 69, 'lead': 147, 'observe': 194, 'reduce': 231, 'self': 255, 'numbers': 192, 'topics': 302, 'almost': 8, 'interval': 140, 'partial': 204, 'discussed': 84, 'refer': 232, 'address': 6, 'attention': 21, 'transactions': 303, 'eigenvalues': 92, 'york': 327, 'transfer': 304, 'relationship': 236, 'domains': 88, 'jordan': 142}
+
+
+[[1.         0.44920063]
+ [0.44920063 1.        ]]
+
+
+ mean: [0.72460032 0.72460032]
+
+
+0.7246003156082885
+
+
+similarity between 1987_1 and 1987_3 0.7475580888904074
